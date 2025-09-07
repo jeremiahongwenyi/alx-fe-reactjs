@@ -11,7 +11,7 @@ import Services from "./components/Services";
 import Contact from "./components/Contact";
 import Footer from "./Footer";
 
-export const router = createBrowserRouter([
+export const Routes = createBrowserRouter([
   {
     path: "/",
     element: <App />,
