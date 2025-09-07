@@ -4,7 +4,15 @@ import { Link } from "react-router-dom";
 function Navbar() {
   return (
     <>
-      <nav style={{ padding: "10px", display: "flex", alignItems: "center" }}>
+      <nav
+        style={{
+          padding: "10px",
+          display: "flex",
+          alignItems: "center",
+          backgroundColor: "darkgray",
+          justifyContent: "center",
+        }}
+      >
         <h1>My Company</h1>
         <ul
           style={{
