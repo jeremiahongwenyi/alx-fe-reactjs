@@ -1,30 +1,54 @@
+// src/components/EditRecipeForm.jsx
 import { useState } from "react";
 import { useRecipeStore } from "./recipeStore";
 
 const EditRecipeForm = ({ recipe }) => {
-  const updateRecipe = useRecipeStore((state) => state.updateRecipe);
-  const [title, setTitle] = useState(recipe.title);
-  const [description, setDescription] = useState(recipe.description);
+  const updateRecipe = useRecipeStore((s) => s.updateRecipe);
+  const [title, setTitle] = useState(recipe.title || "");
+  const [description, setDescription] = useState(recipe.description || "");
+  const [ingredients, setIngredients] = useState(
+    (recipe.ingredients || []).join(", ")
+  );
+  const [prepTime, setPrepTime] = useState(recipe.prepTime ?? "");
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    updateRecipe(recipe.id, title, description);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const parsedIngredients = ingredients
+      .split(",")
+      .map((i) => i.trim())
+      .filter(Boolean);
+    const prep = prepTime === "" ? undefined : Number(prepTime);
+
+    updateRecipe(recipe.id, {
+      title: title.trim(),
+      description: description.trim(),
+      ingredients: parsedIngredients,
+      prepTime: typeof prep === "number" ? prep : undefined,
+    });
   };
 
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: "1rem" }}>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} />
       <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Title"
+        value={ingredients}
+        onChange={(e) => setIngredients(e.target.value)}
+        placeholder="Ingredients (comma separated)"
       />
-      <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Description"
+      <input
+        value={prepTime}
+        onChange={(e) => setPrepTime(e.target.value)}
+        placeholder="Prep time (min)"
       />
-      <button type="submit">Update</button>
+      <div>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+      <button type="submit" style={{ marginTop: "0.5rem" }}>
+        Update
+      </button>
     </form>
   );
 };

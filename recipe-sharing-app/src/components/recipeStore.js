@@ -1,57 +1,97 @@
-// import { create } from 'zustand'
-
-// export const useRecipeStore = create(set => ({
-//     recipes: [],
-//     addRecipe: (newRecipe) => set(state => ({ recipes: [...state.recipes, newRecipe] })),
-//     setRecipes: (recipes) => set({ recipes }),
-//     deleteRecipe: (recipeId) => set((state) => {
-//         const newRecipe = []
-//         state.recipes.array.forEach(recipe => {
-//             if (recipe.id === recipeId) {
-//                 return
-//             }
-//             newRecipe.push(recipe)
-
-//         });
-//         return { recipes: newRecipe }
-//     }),
-//     updateRecipe: (recipeId, title, description)=> set ((state)=>{
-//         const newRecipe = []
-//         state.recipes.array.forEach(recipe => {
-//             if (recipe.id === recipeId) {
-//                 const updatedData = {id:recipeId, title:title, description:description}
-//                 newRecipe.push(updatedData)
-//             }
-//             newRecipe.push(recipe)
-
-//         });
-//         return { recipes: newRecipe }
-//     })
-// }));
-
-
-
+// src/store/recipeStore.js
 import { create } from "zustand";
 
-export const useRecipeStore = create((set) => ({
-  recipes: [],
+export const useRecipeStore = create((set, get) => {
+  // Helper: filter recipes by current filters
+  const computeFiltered = (recipes, searchTerm, ingredientFilter, maxPrepTime) => {
+    const term = (searchTerm || "").trim().toLowerCase();
+    const ingredient = (ingredientFilter || "").trim().toLowerCase();
+    const maxTime = maxPrepTime === null || maxPrepTime === undefined || maxPrepTime === "" ? null : Number(maxPrepTime);
 
-  addRecipe: (newRecipe) =>
-    set((state) => ({ recipes: [...state.recipes, newRecipe] })),
+    return recipes.filter((recipe) => {
+      const title = (recipe.title || "").toLowerCase();
+      const desc = (recipe.description || "").toLowerCase();
+      const ingredientsText = recipe.ingredients
+        ? (Array.isArray(recipe.ingredients) ? recipe.ingredients.join(" ") : String(recipe.ingredients)).toLowerCase()
+        : "";
 
-  setRecipes: (recipes) => set({ recipes }),
+      const matchesTerm =
+        !term ||
+        title.includes(term) ||
+        desc.includes(term) ||
+        ingredientsText.includes(term);
 
-  // ✅ Fixed deleteRecipe
-  deleteRecipe: (recipeId) =>
-    set((state) => ({
-      recipes: state.recipes.filter((recipe) => recipe.id !== recipeId),
-    })),
+      const matchesIngredient = !ingredient || ingredientsText.includes(ingredient);
 
-  // ✅ Fixed updateRecipe
-  updateRecipe: (recipeId, title, description) =>
-    set((state) => ({
-      recipes: state.recipes.map((recipe) =>
-        recipe.id === recipeId ? { ...recipe, title, description } : recipe
-      ),
-    })),
-}));
+      const matchesPrep = !maxTime || (typeof recipe.prepTime === "number" && recipe.prepTime <= maxTime);
+
+      return matchesTerm && matchesIngredient && matchesPrep;
+    });
+  };
+
+  return {
+    // data
+    recipes: [],
+    filteredRecipes: [],
+
+    // filters
+    searchTerm: "",
+    ingredientFilter: "",
+    maxPrepTime: null, // number in minutes or null
+
+    // CRUD operations (each recomputes filteredRecipes)
+    setRecipes: (recipes) =>
+      set((state) => ({
+        recipes,
+        filteredRecipes: computeFiltered(recipes, state.searchTerm, state.ingredientFilter, state.maxPrepTime),
+      })),
+
+    addRecipe: (newRecipe) =>
+      set((state) => {
+        const recipes = [...state.recipes, newRecipe];
+        return { recipes, filteredRecipes: computeFiltered(recipes, state.searchTerm, state.ingredientFilter, state.maxPrepTime) };
+      }),
+
+    deleteRecipe: (recipeId) =>
+      set((state) => {
+        const recipes = state.recipes.filter((r) => r.id !== recipeId);
+        return { recipes, filteredRecipes: computeFiltered(recipes, state.searchTerm, state.ingredientFilter, state.maxPrepTime) };
+      }),
+
+    updateRecipe: (recipeId, updates) =>
+      set((state) => {
+        const recipes = state.recipes.map((r) => (r.id === recipeId ? { ...r, ...updates } : r));
+        return { recipes, filteredRecipes: computeFiltered(recipes, state.searchTerm, state.ingredientFilter, state.maxPrepTime) };
+      }),
+
+    // filter setters (recompute filteredRecipes when changed)
+    setSearchTerm: (term) =>
+      set((state) => ({
+        searchTerm: term,
+        filteredRecipes: computeFiltered(state.recipes, term, state.ingredientFilter, state.maxPrepTime),
+      })),
+
+    setIngredientFilter: (ingredient) =>
+      set((state) => ({
+        ingredientFilter: ingredient,
+        filteredRecipes: computeFiltered(state.recipes, state.searchTerm, ingredient, state.maxPrepTime),
+      })),
+
+    setMaxPrepTime: (maxTime) =>
+      set((state) => {
+        const value = maxTime === "" || maxTime === null ? null : Number(maxTime);
+        return {
+          maxPrepTime: value,
+          filteredRecipes: computeFiltered(state.recipes, state.searchTerm, state.ingredientFilter, value),
+        };
+      }),
+
+    clearFilters: () =>
+      set((state) => ({
+        searchTerm: "",
+        ingredientFilter: "",
+        maxPrepTime: null,
+        filteredRecipes: computeFiltered(state.recipes, "", "", null),
+      })),
+  };
+});
