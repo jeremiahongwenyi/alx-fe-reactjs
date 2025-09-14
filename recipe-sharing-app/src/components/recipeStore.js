@@ -1,4 +1,3 @@
-// src/store/recipeStore.js
 import { create } from "zustand";
 
 export const useRecipeStore = create((set, get) => {
@@ -6,13 +5,19 @@ export const useRecipeStore = create((set, get) => {
   const computeFiltered = (recipes, searchTerm, ingredientFilter, maxPrepTime) => {
     const term = (searchTerm || "").trim().toLowerCase();
     const ingredient = (ingredientFilter || "").trim().toLowerCase();
-    const maxTime = maxPrepTime === null || maxPrepTime === undefined || maxPrepTime === "" ? null : Number(maxPrepTime);
+    const maxTime =
+      maxPrepTime === null || maxPrepTime === undefined || maxPrepTime === ""
+        ? null
+        : Number(maxPrepTime);
 
     return recipes.filter((recipe) => {
       const title = (recipe.title || "").toLowerCase();
       const desc = (recipe.description || "").toLowerCase();
       const ingredientsText = recipe.ingredients
-        ? (Array.isArray(recipe.ingredients) ? recipe.ingredients.join(" ") : String(recipe.ingredients)).toLowerCase()
+        ? (Array.isArray(recipe.ingredients)
+            ? recipe.ingredients.join(" ")
+            : String(recipe.ingredients)
+          ).toLowerCase()
         : "";
 
       const matchesTerm =
@@ -23,7 +28,9 @@ export const useRecipeStore = create((set, get) => {
 
       const matchesIngredient = !ingredient || ingredientsText.includes(ingredient);
 
-      const matchesPrep = !maxTime || (typeof recipe.prepTime === "number" && recipe.prepTime <= maxTime);
+      const matchesPrep =
+        !maxTime ||
+        (typeof recipe.prepTime === "number" && recipe.prepTime <= maxTime);
 
       return matchesTerm && matchesIngredient && matchesPrep;
     });
@@ -33,48 +40,92 @@ export const useRecipeStore = create((set, get) => {
     // data
     recipes: [],
     filteredRecipes: [],
+    favorites: [], // ✅ new
+    recommendations: [], // ✅ new
 
     // filters
     searchTerm: "",
     ingredientFilter: "",
-    maxPrepTime: null, // number in minutes or null
+    maxPrepTime: null,
 
     // CRUD operations (each recomputes filteredRecipes)
     setRecipes: (recipes) =>
       set((state) => ({
         recipes,
-        filteredRecipes: computeFiltered(recipes, state.searchTerm, state.ingredientFilter, state.maxPrepTime),
+        filteredRecipes: computeFiltered(
+          recipes,
+          state.searchTerm,
+          state.ingredientFilter,
+          state.maxPrepTime
+        ),
       })),
 
     addRecipe: (newRecipe) =>
       set((state) => {
         const recipes = [...state.recipes, newRecipe];
-        return { recipes, filteredRecipes: computeFiltered(recipes, state.searchTerm, state.ingredientFilter, state.maxPrepTime) };
+        return {
+          recipes,
+          filteredRecipes: computeFiltered(
+            recipes,
+            state.searchTerm,
+            state.ingredientFilter,
+            state.maxPrepTime
+          ),
+        };
       }),
 
     deleteRecipe: (recipeId) =>
       set((state) => {
         const recipes = state.recipes.filter((r) => r.id !== recipeId);
-        return { recipes, filteredRecipes: computeFiltered(recipes, state.searchTerm, state.ingredientFilter, state.maxPrepTime) };
+        return {
+          recipes,
+          filteredRecipes: computeFiltered(
+            recipes,
+            state.searchTerm,
+            state.ingredientFilter,
+            state.maxPrepTime
+          ),
+          favorites: state.favorites.filter((id) => id !== recipeId), // clean up favorites
+        };
       }),
 
     updateRecipe: (recipeId, updates) =>
       set((state) => {
-        const recipes = state.recipes.map((r) => (r.id === recipeId ? { ...r, ...updates } : r));
-        return { recipes, filteredRecipes: computeFiltered(recipes, state.searchTerm, state.ingredientFilter, state.maxPrepTime) };
+        const recipes = state.recipes.map((r) =>
+          r.id === recipeId ? { ...r, ...updates } : r
+        );
+        return {
+          recipes,
+          filteredRecipes: computeFiltered(
+            recipes,
+            state.searchTerm,
+            state.ingredientFilter,
+            state.maxPrepTime
+          ),
+        };
       }),
 
-    // filter setters (recompute filteredRecipes when changed)
+    // filter setters
     setSearchTerm: (term) =>
       set((state) => ({
         searchTerm: term,
-        filteredRecipes: computeFiltered(state.recipes, term, state.ingredientFilter, state.maxPrepTime),
+        filteredRecipes: computeFiltered(
+          state.recipes,
+          term,
+          state.ingredientFilter,
+          state.maxPrepTime
+        ),
       })),
 
     setIngredientFilter: (ingredient) =>
       set((state) => ({
         ingredientFilter: ingredient,
-        filteredRecipes: computeFiltered(state.recipes, state.searchTerm, ingredient, state.maxPrepTime),
+        filteredRecipes: computeFiltered(
+          state.recipes,
+          state.searchTerm,
+          ingredient,
+          state.maxPrepTime
+        ),
       })),
 
     setMaxPrepTime: (maxTime) =>
@@ -82,7 +133,12 @@ export const useRecipeStore = create((set, get) => {
         const value = maxTime === "" || maxTime === null ? null : Number(maxTime);
         return {
           maxPrepTime: value,
-          filteredRecipes: computeFiltered(state.recipes, state.searchTerm, state.ingredientFilter, value),
+          filteredRecipes: computeFiltered(
+            state.recipes,
+            state.searchTerm,
+            state.ingredientFilter,
+            value
+          ),
         };
       }),
 
@@ -93,5 +149,35 @@ export const useRecipeStore = create((set, get) => {
         maxPrepTime: null,
         filteredRecipes: computeFiltered(state.recipes, "", "", null),
       })),
+
+    // ✅ favorites
+    addFavorite: (recipeId) =>
+      set((state) => ({
+        favorites: state.favorites.includes(recipeId)
+          ? state.favorites
+          : [...state.favorites, recipeId],
+      })),
+
+    removeFavorite: (recipeId) =>
+      set((state) => ({
+        favorites: state.favorites.filter((id) => id !== recipeId),
+      })),
+
+    // ✅ simple mock recommendations
+    generateRecommendations: () =>
+      set((state) => {
+        const recommended = state.recipes.filter(
+          (r) =>
+            !state.favorites.includes(r.id) &&
+            state.recipes.some(
+              (fav) =>
+                state.favorites.includes(fav.id) &&
+                fav.ingredients?.some((ing) =>
+                  r.ingredients?.includes(ing)
+                )
+            )
+        );
+        return { recommendations: recommended.slice(0, 3) }; // limit to 3
+      }),
   };
 });

@@ -1,13 +1,15 @@
-// src/components/RecipeDetails.jsx
 import { useRecipeStore } from "./recipeStore";
 import EditRecipeForm from "./EditRecipeForm";
 import DeleteRecipeButton from "./DeleteRecipeButton";
+import FavoriteButton from "./FavoriteButton";
 import { useParams, useNavigate } from "react-router-dom";
 
 const RecipeDetails = () => {
   const { id } = useParams();
   const recipeId = Number(id);
-  const recipe = useRecipeStore((s) => s.recipes.find((r) => r.id === recipeId));
+  const recipe = useRecipeStore((s) =>
+    s.recipes.find((r) => r.id === recipeId)
+  );
   const navigate = useNavigate();
 
   if (!recipe) return <p>Recipe not found.</p>;
@@ -22,8 +24,11 @@ const RecipeDetails = () => {
           <strong>Ingredients:</strong> {recipe.ingredients.join(", ")}
         </p>
       )}
-      {typeof recipe.prepTime === "number" && <p>Prep time: {recipe.prepTime} min</p>}
+      {typeof recipe.prepTime === "number" && (
+        <p>Prep time: {recipe.prepTime} min</p>
+      )}
 
+      <FavoriteButton recipeId={recipe.id} />
       <EditRecipeForm recipe={recipe} />
       <DeleteRecipeButton recipeId={recipe.id} />
     </div>
