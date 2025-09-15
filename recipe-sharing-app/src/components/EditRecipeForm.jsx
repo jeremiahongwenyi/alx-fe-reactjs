@@ -11,8 +11,8 @@ const EditRecipeForm = ({ recipe }) => {
   );
   const [prepTime, setPrepTime] = useState(recipe.prepTime ?? "");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
     const parsedIngredients = ingredients
       .split(",")
       .map((i) => i.trim())
