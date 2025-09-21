@@ -1,6 +1,5 @@
-// src/components/Search.jsx
 import { useState } from "react";
-import { fetchAdvancedUsers } from "../services/githubService";
+import { fetchAdvancedUsers, fetchUserData } from "../services/githubService";
 
 function Search() {
   const [username, setUsername] = useState("");
@@ -17,8 +16,14 @@ function Search() {
     setResults([]);
 
     try {
-      const data = await fetchAdvancedUsers(username, location, minRepos);
-      setResults(data.items); // GitHub search API returns `items`
+      // If only username is provided, use fetchUserData
+      if (username && !location && !minRepos) {
+        const singleUser = await fetchUserData(username);
+        setResults([singleUser]); // put in array for consistency
+      } else {
+        const data = await fetchAdvancedUsers(username, location, minRepos);
+        setResults(data.items); // GitHub search API returns `items`
+      }
     } catch (err) {
       setError("Looks like we cant find the user");
     } finally {
@@ -78,7 +83,7 @@ function Search() {
                   className="w-16 h-16 rounded-full mr-4"
                 />
                 <div>
-                  <h3 className="font-bold text-lg">{user.login}</h3>
+                  <h3 className="font-bold text-lg">{user.name || user.login}</h3>
                   <a
                     href={user.html_url}
                     target="_blank"
