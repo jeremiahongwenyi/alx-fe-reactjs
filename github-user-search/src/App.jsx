@@ -1,19 +1,12 @@
-import { Routes, Route, Link } from 'react-router-dom'
+import Search from "./components/Search";
 
 function App() {
   return (
     <div>
-      <nav style={{ padding: '1rem', background: '#f4f4f4' }}>
-        <Link to="/" style={{ marginRight: '1rem' }}>Home</Link>
-        <Link to="/profile">Profile</Link>
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<h2>Welcome to GitHub User Search</h2>} />
-        <Route path="/profile" element={<h2>User Profile Page</h2>} />
-      </Routes>
+      <h1>GitHub User Search</h1>
+      <Search />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
