@@ -41,21 +41,23 @@ export default function RecipeDetail() {
 
           <p className="text-gray-600 mb-6">{recipe.summary}</p>
 
+          {/* Ingredients Section */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-2">Ingredients</h2>
             <ul className="list-disc list-inside text-gray-700 space-y-1">
-              <li>Ingredient 1</li>
-              <li>Ingredient 2</li>
-              <li>Ingredient 3</li>
+              {recipe.ingredients.map((ingredient, index) => (
+                <li key={index}>{ingredient}</li>
+              ))}
             </ul>
           </div>
 
+          {/* Instructions Section */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-2">Instructions</h2>
             <ol className="list-decimal list-inside text-gray-700 space-y-1">
-              <li>Step 1 – Prepare your ingredients.</li>
-              <li>Step 2 – Cook until golden brown.</li>
-              <li>Step 3 – Serve and enjoy!</li>
+              {recipe.instructions.map((step, index) => (
+                <li key={index}>{step}</li>
+              ))}
             </ol>
           </div>
 
