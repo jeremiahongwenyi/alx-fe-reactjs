@@ -1,91 +1,63 @@
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+import { useState } from "react";
 
-// Validation Schema using Yup
-const validationSchema = Yup.object({
-  username: Yup.string().required("Username is required"),
-  email: Yup.string()
-    .email("Invalid email format")
-    .required("Email is required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-});
+const RegistrationForm = () => {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-const FormikForm = () => {
-  const initialValues = {
-    username: "",
-    email: "",
-    password: "",
-  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  const handleSubmit = (values, { resetForm }) => {
-    console.log("Form Submitted:", values);
+    if (!username || !email || !password) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    console.log("Form submitted:", { username, email, password });
     alert("Registration successful!");
-    resetForm();
+    setUsername("");
+    setEmail("");
+    setPassword("");
   };
 
   return (
     <div style={{ maxWidth: "400px", margin: "2rem auto" }}>
-      <h2>User Registration (Formik)</h2>
+      <h2>User Registration</h2>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: "1rem" }}>
+          <label>Username:</label>
+          <input
+            type="text"
+            placeholder="Enter your username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </div>
 
-      <Formik
-        initialValues={initialValues}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
-      >
-        {({ isSubmitting }) => (
-          <Form>
-            <div style={{ marginBottom: "1rem" }}>
-              <label>Username:</label>
-              <Field
-                type="text"
-                name="username"
-                placeholder="Enter your username"
-              />
-              <ErrorMessage
-                name="username"
-                component="p"
-                style={{ color: "red", fontSize: "0.9rem" }}
-              />
-            </div>
+        <div style={{ marginBottom: "1rem" }}>
+          <label>Email:</label>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
 
-            <div style={{ marginBottom: "1rem" }}>
-              <label>Email:</label>
-              <Field
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-              />
-              <ErrorMessage
-                name="email"
-                component="p"
-                style={{ color: "red", fontSize: "0.9rem" }}
-              />
-            </div>
+        <div style={{ marginBottom: "1rem" }}>
+          <label>Password:</label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
 
-            <div style={{ marginBottom: "1rem" }}>
-              <label>Password:</label>
-              <Field
-                type="password"
-                name="password"
-                placeholder="Enter your password"
-              />
-              <ErrorMessage
-                name="password"
-                component="p"
-                style={{ color: "red", fontSize: "0.9rem" }}
-              />
-            </div>
-
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Register"}
-            </button>
-          </Form>
-        )}
-      </Formik>
+        <button type="submit">Register</button>
+      </form>
     </div>
   );
 };
 
-export default FormikForm;
+export default RegistrationForm;
