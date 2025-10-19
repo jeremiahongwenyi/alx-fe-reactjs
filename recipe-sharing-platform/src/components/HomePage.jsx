@@ -6,8 +6,16 @@ export default function HomePage() {
   const [recipes, setRecipes] = useState([]);
 
   useEffect(() => {
-    setRecipes(data);
+    // setRecipes(data);
+getCatFact()
   }, []);
+
+  const getCatFact = ()=>{
+    const myheaders = new Headers()
+    console.log('headers here', myheaders);
+    
+    const res = fetch('https://Cat-Fact-API.proxy-production.allthingsdev.co/fact', myheaders)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
