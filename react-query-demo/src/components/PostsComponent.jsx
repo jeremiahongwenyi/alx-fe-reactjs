@@ -9,18 +9,29 @@ const fetchPosts = async () => {
     if (!response.ok) throw new Error("Failed try again later");
     const res = await response.json();
     console.log(res);
-    return res
+    return res;
   } catch (err) {
     console.log(err);
   }
 };
 
 function PostsComponent() {
-
-  const {data:posts, isLoading, isError, error,refetch, isFetching} = useQuery({
+  const {
+    data: posts,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: ["posts"],
     queryFn: fetchPosts,
-    staleTime: 1000 * 60,
+
+    // 👇 Advanced React Query options
+    staleTime: 1000 * 60, // 1 minute
+    cacheTime: 1000 * 60 * 5, // 5 minutes — how long inactive data stays in cache
+    refetchOnWindowFocus: false, // Disable auto-refetch when you switch back to tab
+    keepPreviousData: true, // Keep old data visible while fetching new data
   });
   return (
     <div style={{ padding: "1rem" }}>
@@ -52,6 +63,5 @@ function PostsComponent() {
     </div>
   );
 }
-  
 
 export default PostsComponent;
